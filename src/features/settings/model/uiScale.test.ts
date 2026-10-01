@@ -1,3 +1,4 @@
+// @vitest-environment happy-dom
 import { describe, expect, it } from "vitest";
 import {
   normalizeUiScale,
@@ -5,6 +6,8 @@ import {
   UI_SCALE_MAX,
   UI_SCALE_MIN,
   UI_SCALE_PERCENTS,
+  applyUiScale,
+  SCROLLBAR_BASE_SIZE,
   uiScaleCommand,
   zoomInUiScale,
   zoomOutUiScale,
@@ -50,5 +53,23 @@ describe("ui scale", () => {
     expect(UI_SCALE_PERCENTS).toContain(Math.round(UI_SCALE_DEFAULT * 100));
     expect(UI_SCALE_PERCENTS.at(-1)).toBe(Math.round(UI_SCALE_MAX * 100));
     expect(UI_SCALE_PERCENTS).toHaveLength(16);
+  });
+
+  it("updates --ui-scale and --scrollbar-size CSS variables when scale changes", async () => {
+    await applyUiScale(1.5);
+    expect(
+      document.documentElement.style.getPropertyValue("--ui-scale"),
+    ).toBe("1.5");
+    expect(
+      document.documentElement.style.getPropertyValue("--scrollbar-size"),
+    ).toBe(`${Math.round(SCROLLBAR_BASE_SIZE * 1.5)}px`);
+
+    await applyUiScale(1.0);
+    expect(
+      document.documentElement.style.getPropertyValue("--ui-scale"),
+    ).toBe("1");
+    expect(
+      document.documentElement.style.getPropertyValue("--scrollbar-size"),
+    ).toBe(`${SCROLLBAR_BASE_SIZE}px`);
   });
 });

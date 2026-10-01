@@ -50,6 +50,8 @@ export function saveUiScale(value: number) {
   return next;
 }
 
+export const SCROLLBAR_BASE_SIZE = 6;
+
 /**
  * App-wide scaling via the native webview zoom (Chromium page zoom /
  * WebView2 zoom), so menu anchors, drag-resize deltas, and terminal layout —
@@ -60,10 +62,21 @@ export async function applyUiScale(value: number) {
   const next = normalizeUiScale(value);
   try {
     await getCurrentWebview().setZoom(next);
-    document.documentElement.style.removeProperty("zoom");
+    if (typeof document !== "undefined") {
+      document.documentElement.style.removeProperty("zoom");
+    }
   } catch {
     // No Tauri runtime (browser dev): fall back to CSS zoom.
-    document.documentElement.style.setProperty("zoom", String(next));
+    if (typeof document !== "undefined") {
+      document.documentElement.style.setProperty("zoom", String(next));
+    }
+  }
+  if (typeof document !== "undefined") {
+    document.documentElement.style.setProperty("--ui-scale", String(next));
+    document.documentElement.style.setProperty(
+      "--scrollbar-size",
+      `${Math.round(SCROLLBAR_BASE_SIZE * next)}px`,
+    );
   }
   if (typeof window !== "undefined") {
     window.dispatchEvent(
